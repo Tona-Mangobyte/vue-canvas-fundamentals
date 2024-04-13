@@ -110,6 +110,7 @@ export class Sprite {
   value: number;
   track: number;
   fillStyle?: string;
+  runAnimationRate?: number;
 
   collisionMargin: CollisionMargin;
 

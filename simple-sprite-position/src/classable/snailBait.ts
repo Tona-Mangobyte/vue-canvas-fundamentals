@@ -8,9 +8,6 @@ export class SnailBait extends Vue {
     LEFT = 1
     RIGHT = 2
 
-    BACKGROUND_VELOCITY = 42
-    SNAIL_BOMB_VELOCITY = 550
-
     PAUSED_CHECK_INTERVAL = 200
 
     PLATFORM_HEIGHT = 8
@@ -27,17 +24,10 @@ export class SnailBait extends Vue {
 
     RUN_ANIMATION_RATE = 30 // fps
 
-    RUBY_SPARKLE_DURATION = 200 // milliseconds
-    RUBY_SPARKLE_INTERVAL = 500 // milliseconds
-
-    SAPPHIRE_SPARKLE_DURATION = 100 // milliseconds
-    SAPPHIRE_SPARKLE_INTERVAL = 300 // milliseconds
-
     // Runner values.....................................................
 
     INITIAL_RUNNER_LEFT = 10
     INITIAL_RUNNER_TRACK = 1
-    INITIAL_RUNNER_TRACK2 = 2
 
     // Platform scrolling offset (and therefore speed) is
     // PLATFORM_VELOCITY_MULTIPLIER * backgroundOffset: The
@@ -64,15 +54,6 @@ export class SnailBait extends Vue {
     // Translation offsets...............................................
 
     backgroundOffset = this.STARTING_BACKGROUND_OFFSET
-    spriteOffset = this.STARTING_PLATFORM_OFFSET
-
-    // Velocities........................................................
-
-    bgVelocity = this.STARTING_BACKGROUND_VELOCITY;
-    platformVelocity = 0;
-
-    BUTTON_PACE_VELOCITY = 80;
-    SNAIL_PACE_VELOCITY = 50;
 
     // Images............................................................
     spritesheet = new Image()
@@ -199,8 +180,6 @@ export class SnailBait extends Vue {
     }
 
     draw (now: number) {
-      // In step with background
-      // this.setPlatformVelocity()
       this.setOffsets()
       this.drawBackground()
 
@@ -208,43 +187,24 @@ export class SnailBait extends Vue {
       this.drawSprites()
     }
 
-    setPlatformVelocity () {
-      this.platformVelocity = this.bgVelocity * this.PLATFORM_VELOCITY_MULTIPLIER
-    }
-
     setOffsets () {
-      // In step with background
-      // this.setBackgroundOffset()
       this.setSpriteOffsets()
     }
 
-    setBackgroundOffset () {
-      const offset = this.backgroundOffset + this.bgVelocity / this.fps
-
-      if (offset > 0 && offset < this.BACKGROUND_WIDTH) {
-        this.backgroundOffset = offset
-      } else {
-        this.backgroundOffset = 0
-      }
-    }
-
     setSpriteOffsets () {
-      let i, sprite: any
-
-      this.spriteOffset += this.platformVelocity / this.fps // In step with platforms
-
-      for (i = 0; i < this.sprites.length; ++i) {
+      let sprite: Sprite
+      for (let i = 0; i < this.sprites.length; ++i) {
         sprite = this.sprites[i]
-        // In step with background
-        /* if (sprite.type !== 'runner' && sprite.type !== 'smoking hole') {
-          sprite.offset = this.spriteOffset
-        } else if (sprite.type === 'smoking hole') {
-          sprite.offset = this.backgroundOffset // In step with background
-        } */
         if (sprite.type === 'runner') {
-          sprite.offset -= 1
+          sprite.offset -= 1 // Move to the left
           if (sprite.offset <= -780) {
-            sprite.offset = 0
+            sprite.track += 1 // Move to next track
+            if (sprite.track > 3) {
+              sprite.track = 1 // Back to track 1
+            }
+            sprite.offset = 0 // Reset offset
+            sprite.top = this.calculatePlatformTop(sprite.track) - this.RUNNER_CELLS_HEIGHT
+            this.drawSprite(sprite) // Draw the sprite at the new location
           }
         }
       }
@@ -286,11 +246,8 @@ export class SnailBait extends Vue {
 
     updateSprites (now: number) {
       let sprite: Sprite
-      // let sprite: any
-
       for (let i = 0; i < this.sprites.length; ++i) {
         sprite = this.sprites[i]
-
         if (sprite.visible && this.isSpriteInView(sprite)) {
           sprite.update(now, this.fps, this.context, this.lastAnimationFrameTime)
         }
@@ -315,7 +272,6 @@ export class SnailBait extends Vue {
     createSprites () {
       this.createPlatformSprites()
       this.createRunnerSprite()
-      this.createRunner2Sprite()
       this.addSpritesToSpriteArray()
       this.initializeSprites()
     }
@@ -343,7 +299,7 @@ export class SnailBait extends Vue {
       }
     }
 
-    runner: any;
+    runner: Sprite | null = null;
     createRunnerSprite () {
       this.runner = new Sprite(
         'runner', // type
@@ -361,27 +317,8 @@ export class SnailBait extends Vue {
             this.calculatePlatformTop(this.runner.track) - this.RUNNER_CELLS_HEIGHT
     }
 
-    runner2: any;
-    createRunner2Sprite () {
-      this.runner2 = new Sprite(
-        'runner', // type
-        this.runnerArtist, // artist
-        [this.runBehavior]
-      ) // behaviors
-
-      this.runner2.runAnimationRate = this.RUN_ANIMATION_RATE
-
-      this.runner2.width = this.RUNNER_CELLS_WIDTH
-      this.runner2.height = this.RUNNER_CELLS_HEIGHT
-      this.runner2.left = this.INITIAL_RUNNER_LEFT
-      this.runner2.track = this.INITIAL_RUNNER_TRACK2
-      this.runner2.top =
-            this.calculatePlatformTop(this.runner2.track) - this.RUNNER_CELLS_HEIGHT
-    }
-
     addSpritesToSpriteArray () {
       this.sprites.push(this.runner)
-      this.sprites.push(this.runner2)
 
       for (let i = 0; i < this.platforms.length; ++i) {
         this.sprites.push(this.platforms[i])
