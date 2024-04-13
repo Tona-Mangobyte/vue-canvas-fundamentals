@@ -18,6 +18,7 @@ export default class HomeView extends Mixins(SnailBait) {
     this.initializeImages()
     this.createSprites()
     setTimeout(() => this.turnRight(), 1000)
+    // setTimeout(() => this.turnLeft(), 1000)
   }
 }
 </script>

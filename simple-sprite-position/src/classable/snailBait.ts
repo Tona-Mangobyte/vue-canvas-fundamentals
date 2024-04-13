@@ -27,6 +27,7 @@ export class SnailBait extends Vue {
     // Runner values.....................................................
 
     INITIAL_RUNNER_LEFT = 10
+    INITIAL_RUNNER_RIGHT = 780
     INITIAL_RUNNER_TRACK = 1
 
     // Platform scrolling offset (and therefore speed) is
@@ -54,6 +55,7 @@ export class SnailBait extends Vue {
     // Translation offsets...............................................
 
     backgroundOffset = this.STARTING_BACKGROUND_OFFSET
+    spriteOffset = this.STARTING_PLATFORM_OFFSET
 
     // Images............................................................
     spritesheet = new Image()
@@ -151,9 +153,15 @@ export class SnailBait extends Vue {
     }
 
     turnRight () {
-      // In step with background
-      // this.bgVelocity = this.BACKGROUND_VELOCITY
-      // this.runnerArtist.cells = this.runnerCellsRight
+      // In step with person turning right
+      this.spriteOffset += 1 // Move to the right
+      this.runnerArtist.cells = this.runnerCellsRight
+    }
+
+    turnLeft () {
+      // In step with person turning left
+      this.spriteOffset -= 1 // Move to the left
+      this.runnerArtist.cells = this.runnerCellsLeft
     }
 
     animate (now: number) {
@@ -196,8 +204,8 @@ export class SnailBait extends Vue {
       for (let i = 0; i < this.sprites.length; ++i) {
         sprite = this.sprites[i]
         if (sprite.type === 'runner') {
-          sprite.offset -= 1 // Move to the left
-          if (sprite.offset <= -780) {
+          sprite.offset -= this.spriteOffset // Move to the left or right
+          if (sprite.offset <= -780 || sprite.offset > 780) {
             sprite.track += 1 // Move to next track
             if (sprite.track > 3) {
               sprite.track = 1 // Back to track 1
@@ -312,6 +320,7 @@ export class SnailBait extends Vue {
       this.runner.width = this.RUNNER_CELLS_WIDTH
       this.runner.height = this.RUNNER_CELLS_HEIGHT
       this.runner.left = this.INITIAL_RUNNER_LEFT
+      // this.runner.left = this.INITIAL_RUNNER_RIGHT
       this.runner.track = this.INITIAL_RUNNER_TRACK
       this.runner.top =
             this.calculatePlatformTop(this.runner.track) - this.RUNNER_CELLS_HEIGHT
